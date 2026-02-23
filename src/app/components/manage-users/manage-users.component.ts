@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SidebarComponent } from '../layout/sidebar/sidebar.component';
 import { UserService } from '../../services/user.service';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 interface MemberUser {
   id: number;
@@ -32,7 +34,12 @@ interface UserResponse {
 @Component({
   selector: 'app-manage-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    SidebarComponent,
+    MatDialogModule
+  ],
   templateUrl: './manage-users.component.html',
   styleUrls: ['./manage-users.component.scss']
 })
@@ -42,10 +49,14 @@ export class ManageUsersComponent implements OnInit {
   currentPage: number = 1;
   pageSize: number = 10;
   selectedStatus: string = '';
+  searchQuery: string = '';
   loading: boolean = false;
   Math = Math; // Make Math available in template
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -53,7 +64,7 @@ export class ManageUsersComponent implements OnInit {
 
   loadUsers(): void {
     this.loading = true;
-    this.userService.getMemberUsers(this.selectedStatus, this.currentPage, this.pageSize).subscribe({
+    this.userService.getMemberUsers(this.selectedStatus, this.currentPage, this.pageSize, this.searchQuery).subscribe({
       next: (response: UserResponse) => {
         console.log('Member Users Response:', response);
         this.users = response.results;
@@ -69,6 +80,17 @@ export class ManageUsersComponent implements OnInit {
 
   changeStatus(status: string): void {
     this.selectedStatus = status;
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  onSearch(): void {
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
     this.currentPage = 1;
     this.loadUsers();
   }
@@ -105,5 +127,79 @@ export class ManageUsersComponent implements OnInit {
       month: 'short', 
       day: 'numeric' 
     });
+  }
+
+  onActiveToggle(user: MemberUser): void {
+    const newState = !user.is_active;
+    const action = newState ? 'activate' : 'deactivate';
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} User`,
+        message: `Are you sure you want to ${action} ${user.full_name}?`,
+        confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.userService.updateUserActiveState(user.id, newState).subscribe({
+          next: () => {
+            user.is_active = newState;
+            console.log(`User ${action}d successfully`);
+          },
+          error: (error) => {
+            console.error(`Error ${action}ing user:`, error);
+          }
+        });
+      }
+    });
+  }
+
+  onStatusChange(user: MemberUser, newStatus: string): void {
+    const oldStatus = user.status;
+    
+    // If status hasn't changed, do nothing
+    if (newStatus === oldStatus) {
+      return;
+    }
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Change Status',
+        message: `Are you sure you want to change ${user.full_name}'s status to ${newStatus}?`,
+        confirmText: 'Change Status',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.userService.updateUserStatus(user.id, newStatus).subscribe({
+          next: () => {
+            console.log('Status updated successfully');
+          },
+          error: (error) => {
+            console.error('Error updating status:', error);
+            // Revert status on error
+            user.status = oldStatus;
+          }
+        });
+      } else {
+        // User cancelled, revert status
+        user.status = oldStatus;
+      }
+    });
+  }
+
+  getAvailableStatuses(currentStatus: string): string[] {
+    if (currentStatus === 'pending') {
+      return ['pending', 'approved', 'rejected'];
+    }
+    // Once approved or rejected, can only switch between those two
+    return ['approved', 'rejected'];
   }
 }

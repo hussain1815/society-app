@@ -11,7 +11,7 @@ export class UserService {
 
   constructor(private http: HttpClient) { }
 
-  getMemberUsers(status: string = '', page: number = 1, pageSize: number = 10): Observable<any> {
+  getMemberUsers(status: string = '', page: number = 1, pageSize: number = 10, search: string = ''): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('page_size', pageSize.toString());
@@ -21,6 +21,19 @@ export class UserService {
       params = params.set('status', status);
     }
 
+    // Only add search param if it's not empty
+    if (search) {
+      params = params.set('search', search);
+    }
+
     return this.http.get(`${this.apiUrl}/member-users/`, { params });
+  }
+
+  updateUserStatus(userId: number, status: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/member-users/${userId}/`, { status });
+  }
+
+  updateUserActiveState(userId: number, isActive: boolean): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/member-users/${userId}/`, { is_active: isActive });
   }
 }

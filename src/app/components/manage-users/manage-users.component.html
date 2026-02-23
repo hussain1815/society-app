@@ -47,21 +47,53 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-      <div class="flex flex-wrap items-center gap-4">
-        <label for="statusFilter" class="text-lg font-semibold text-gray-800">Filter by Status:</label>
-        <div class="relative">
-          <select 
-            id="statusFilter"
-            [(ngModel)]="selectedStatus"
-            (change)="changeStatus(selectedStatus)"
-            class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors">
-            <option value="">All Users</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
-            <i class="fas fa-chevron-down text-sm"></i>
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <!-- Search Field -->
+        <div class="flex-1 min-w-[300px]">
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input 
+                type="text"
+                [(ngModel)]="searchQuery"
+                (keyup.enter)="onSearch()"
+                placeholder="Search by name, email, or phone..."
+                class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pl-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+              </div>
+            </div>
+            <button 
+              (click)="onSearch()"
+              class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+              Search
+            </button>
+            <button 
+              *ngIf="searchQuery"
+              (click)="clearSearch()"
+              class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+              title="Clear search">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="flex items-center gap-4">
+          <label for="statusFilter" class="text-lg font-semibold text-gray-800 whitespace-nowrap">Filter by Status:</label>
+          <div class="relative">
+            <select 
+              id="statusFilter"
+              [(ngModel)]="selectedStatus"
+              (change)="changeStatus(selectedStatus)"
+              class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors">
+              <option value="">All Users</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+              <i class="fas fa-chevron-down text-sm"></i>
+            </div>
           </div>
         </div>
       </div>
@@ -86,7 +118,7 @@
               <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plot No</th>
               <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active/Deactive</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -132,17 +164,22 @@
 
               <!-- Status -->
               <td class="px-6 py-4">
-                <span [class]="getStatusColor(user.status)" 
-                      class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize">
-                  {{ user.status }}
-                </span>
-                <div class="mt-1">
-                  <span *ngIf="user.is_active" class="text-xs text-green-600">
-                    <i class="fas fa-circle text-green-500 mr-1"></i>Active
-                  </span>
-                  <span *ngIf="!user.is_active" class="text-xs text-red-600">
-                    <i class="fas fa-circle text-red-500 mr-1"></i>Inactive
-                  </span>
+                <div class="relative inline-block">
+                  <select 
+                    [(ngModel)]="user.status"
+                    (ngModelChange)="onStatusChange(user, $event)"
+                    [ngClass]="getStatusColor(user.status)"
+                    class="appearance-none px-3 py-1 pr-8 text-xs leading-5 font-semibold rounded-full capitalize cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 border-0">
+                    <option 
+                      *ngFor="let status of getAvailableStatuses(user.status)" 
+                      [value]="status"
+                      class="capitalize bg-white text-gray-900">
+                      {{ status }}
+                    </option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                  </div>
                 </div>
               </td>
 
@@ -151,22 +188,20 @@
                 {{ formatDate(user.created) }}
               </td>
 
-              <!-- Actions -->
-              <td class="px-6 py-4 text-sm font-medium">
-                <div class="flex space-x-2">
-                  <button class="text-blue-600 hover:text-blue-900 transition-colors" title="View">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="text-green-600 hover:text-green-900 transition-colors" title="Approve">
-                    <i class="fas fa-check"></i>
-                  </button>
-                  <button class="text-red-600 hover:text-red-900 transition-colors" title="Reject">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <button class="text-purple-600 hover:text-purple-900 transition-colors" title="Edit">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
+              <!-- Active/Deactive Toggle -->
+              <td class="px-6 py-4">
+                <button 
+                  (click)="onActiveToggle(user)"
+                  [class]="user.is_active ? 'bg-blue-600' : 'bg-gray-300'"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                  <span 
+                    [class]="user.is_active ? 'translate-x-6' : 'translate-x-1'"
+                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform">
+                  </span>
+                </button>
+                <span class="ml-3 text-sm font-medium" [class]="user.is_active ? 'text-green-600' : 'text-gray-500'">
+                  {{ user.is_active ? 'Active' : 'Inactive' }}
+                </span>
               </td>
             </tr>
           </tbody>
