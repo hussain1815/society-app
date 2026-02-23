@@ -1,0 +1,82 @@
+<div class="flex h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <aside 
+    [class.w-64]="!isCollapsed" 
+    [class.w-20]="isCollapsed"
+    class="bg-white shadow-lg transition-all duration-300 flex flex-col">
+    
+    <!-- Logo Section -->
+    <div class="p-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div *ngIf="!isCollapsed" class="flex items-center space-x-2">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-building text-white text-xl"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-gray-800">Society App</h2>
+            <p class="text-xs text-gray-500">{{ userRole === 'superadmin' ? 'Super Admin' : 'Accounts' }}</p>
+          </div>
+        </div>
+        <div *ngIf="isCollapsed" class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto">
+          <i class="fas fa-building text-white text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 overflow-y-auto py-4">
+      <ul class="space-y-1 px-3">
+        <li *ngFor="let item of menuItems">
+          <a 
+            [routerLink]="item.route"
+            routerLinkActive="bg-blue-50 text-blue-600 border-l-4 border-blue-600"
+            [routerLinkActiveOptions]="{exact: true}"
+            class="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 group"
+            [class.justify-center]="isCollapsed">
+            <i [class]="'fas ' + item.icon + ' text-lg'" 
+               [class.text-blue-600]="isActive(item.route)"
+               class="group-hover:scale-110 transition-transform"></i>
+            <span *ngIf="!isCollapsed" class="font-medium">{{ item.label }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- User Profile Section -->
+    <div class="border-t border-gray-200 p-4">
+      <div *ngIf="!isCollapsed" class="flex items-center space-x-3 mb-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+          <span class="text-white font-semibold">{{ userName.charAt(0).toUpperCase() }}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-800 truncate">{{ userName }}</p>
+          <p class="text-xs text-gray-500 truncate">{{ userEmail }}</p>
+        </div>
+      </div>
+      
+      <div *ngIf="isCollapsed" class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-3">
+        <span class="text-white font-semibold">{{ userName.charAt(0).toUpperCase() }}</span>
+      </div>
+
+      <button 
+        (click)="logout()"
+        class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200"
+        [class.px-2]="isCollapsed">
+        <i class="fas fa-sign-out-alt"></i>
+        <span *ngIf="!isCollapsed">Logout</span>
+      </button>
+    </div>
+
+    <!-- Toggle Button -->
+    <button 
+      (click)="toggleSidebar()"
+      class="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-300 rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors">
+      <i [class]="isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'" class="text-xs text-gray-600"></i>
+    </button>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 overflow-y-auto">
+    <ng-content></ng-content>
+  </main>
+</div>
