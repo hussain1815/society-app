@@ -51,6 +51,8 @@ export class ManageUsersComponent implements OnInit {
   selectedStatus: string = '';
   searchQuery: string = '';
   loading: boolean = false;
+  expandedIndex: number | null = null; // For accordion on mobile
+  previousStatuses: Map<number, string> = new Map(); // Track previous status for each user
   Math = Math; // Make Math available in template
 
   constructor(
@@ -69,6 +71,12 @@ export class ManageUsersComponent implements OnInit {
         console.log('Member Users Response:', response);
         this.users = response.results;
         this.totalCount = response.count;
+        
+        // Store initial status for each user
+        this.users.forEach(user => {
+          this.previousStatuses.set(user.id, user.status);
+        });
+        
         this.loading = false;
       },
       error: (error) => {
@@ -132,12 +140,13 @@ export class ManageUsersComponent implements OnInit {
   onActiveToggle(user: MemberUser): void {
     const newState = !user.is_active;
     const action = newState ? 'activate' : 'deactivate';
+    const displayName = user.full_name || user.username;
     
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: `${action.charAt(0).toUpperCase() + action.slice(1)} User`,
-        message: `Are you sure you want to ${action} ${user.full_name}?`,
+        message: `Are you sure you want to ${action} ${displayName}?`,
         confirmText: action.charAt(0).toUpperCase() + action.slice(1),
         cancelText: 'Cancel'
       }
@@ -159,18 +168,21 @@ export class ManageUsersComponent implements OnInit {
   }
 
   onStatusChange(user: MemberUser, newStatus: string): void {
-    const oldStatus = user.status;
+    // Get the previous status from our map
+    const oldStatus = this.previousStatuses.get(user.id) || user.status;
     
     // If status hasn't changed, do nothing
     if (newStatus === oldStatus) {
       return;
     }
     
+    const displayName = user.full_name || user.username;
+    
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: 'Change Status',
-        message: `Are you sure you want to change ${user.full_name}'s status to ${newStatus}?`,
+        message: `Are you sure you want to change ${displayName}'s status from ${oldStatus} to ${newStatus}?`,
         confirmText: 'Change Status',
         cancelText: 'Cancel'
       }
@@ -178,9 +190,12 @@ export class ManageUsersComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        // User confirmed, make API call
         this.userService.updateUserStatus(user.id, newStatus).subscribe({
           next: () => {
             console.log('Status updated successfully');
+            // Update the stored previous status
+            this.previousStatuses.set(user.id, newStatus);
           },
           error: (error) => {
             console.error('Error updating status:', error);
@@ -201,5 +216,13 @@ export class ManageUsersComponent implements OnInit {
     }
     // Once approved or rejected, can only switch between those two
     return ['approved', 'rejected'];
+  }
+
+  toggleAccordion(index: number): void {
+    if (this.expandedIndex === index) {
+      this.expandedIndex = null; // Collapse if already expanded
+    } else {
+      this.expandedIndex = index; // Expand clicked item
+    }
   }
 }

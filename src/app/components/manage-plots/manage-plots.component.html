@@ -1,0 +1,577 @@
+<app-sidebar>
+  <div class="p-4 md:p-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Manage Plots</h1>
+            <p class="text-gray-600 mt-2">View and manage plot information</p>
+          </div>
+          <button
+            (click)="openAddDialog()"
+            class="hidden md:flex px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors items-center gap-2">
+            <i class="fas fa-plus"></i>
+            Add Plot
+          </button>
+        </div>
+        <button
+          (click)="openAddDialog()"
+          class="md:hidden w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+          <i class="fas fa-plus"></i>
+          Add Plot
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+      <div class="flex flex-col gap-4">
+        <!-- Search Field -->
+        <div class="w-full">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="relative flex-1">
+              <input
+                type="text"
+                [(ngModel)]="searchTerm"
+                (keyup.enter)="onSearch()"
+                placeholder="Search by plot number, ECHS number, or name..."
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+            <div class="flex gap-2">
+              <button
+                (click)="onSearch()"
+                class="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 whitespace-nowrap">
+                Search
+              </button>
+              <button
+                *ngIf="searchTerm"
+                (click)="clearSearch()"
+                class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                title="Clear search">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+          <!-- Status Filter -->
+          <div class="flex items-center gap-2 flex-1">
+            <label for="statusFilter" class="text-sm font-semibold text-gray-800 whitespace-nowrap">Status:</label>
+            <div class="relative flex-1">
+              <select
+                id="statusFilter"
+                [(ngModel)]="selectedStatus"
+                (change)="onStatusChange(selectedStatus)"
+                class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors">
+                <option *ngFor="let status of plotStatuses" [value]="status.value">{{ status.label }}</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+                <i class="fas fa-chevron-down text-sm"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Type Filter -->
+          <div class="flex items-center gap-2 flex-1">
+            <label for="typeFilter" class="text-sm font-semibold text-gray-800 whitespace-nowrap">Type:</label>
+            <div class="relative flex-1">
+              <select
+                id="typeFilter"
+                [(ngModel)]="selectedType"
+                (change)="onTypeChange(selectedType)"
+                class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors">
+                <option *ngFor="let type of plotTypes" [value]="type.value">{{ type.label }}</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+                <i class="fas fa-chevron-down text-sm"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Count -->
+    <div class="mb-6 flex justify-center md:justify-end">
+      <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg px-4 py-2 shadow-md w-full md:w-auto text-center">
+        <span class="text-sm text-white font-medium">Total Plots: <span class="font-bold text-lg">{{ totalCount }}</span></span>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Plots Accordion -->
+    <div *ngIf="!isLoading" class="space-y-4">
+      <div *ngFor="let plot of plots; let i = index" class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg">
+        <!-- Accordion Header -->
+        <div
+          (click)="toggleAccordion(i)"
+          class="p-4 cursor-pointer hover:bg-gray-50 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Plot Number -->
+              <div>
+                <p class="text-xs text-gray-500 mb-1">Plot Number</p>
+                <p class="text-sm font-bold text-gray-900">{{ plot.plot_no }}</p>
+              </div>
+
+              <!-- Plot Type -->
+              <div>
+                <p class="text-xs text-gray-500 mb-1">Type</p>
+                <p class="text-sm font-medium text-gray-900">{{ plot.plot_type }}</p>
+              </div>
+
+              <!-- Status -->
+              <div>
+                <p class="text-xs text-gray-500 mb-1">Status</p>
+                <span [ngClass]="getStatusColor(plot.plot_status)" class="inline-block px-3 py-1 text-xs font-semibold rounded-full">
+                  {{ getStatusDisplay(plot.plot_status) }}
+                </span>
+              </div>
+
+              <!-- Members Count -->
+              <div>
+                <p class="text-xs text-gray-500 mb-1">Active Members</p>
+                <p class="text-sm font-medium text-gray-900">
+                  <i class="fas fa-users text-blue-600 mr-1"></i>{{ plot.total_active_membership }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Action Icons and Chevron -->
+            <div class="ml-4 flex items-center gap-3 flex-shrink-0">
+              <button
+                (click)="editPlot(plot); $event.stopPropagation()"
+                class="hidden md:block text-blue-600 hover:text-blue-800 transition-colors p-2 hover:bg-blue-50 rounded-lg"
+                title="Edit">
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+              <button
+                (click)="deletePlot(plot); $event.stopPropagation()"
+                class="hidden md:block text-red-600 hover:text-red-800 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                title="Delete">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+              <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200"
+                 [class.rotate-180]="expandedIndex === i"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion Content -->
+        <div *ngIf="expandedIndex === i" class="px-4 pb-4 bg-gray-50 border-t border-gray-200">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+            <!-- Left Column -->
+            <div class="space-y-3">
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase mb-1">Covered Area</p>
+                <p class="text-sm text-gray-900">{{ plot.covered_area }} sq. ft.</p>
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase mb-1">Possession Date</p>
+                <p class="text-sm text-gray-900">{{ plot.possession_date | date: 'MMM d, y' }}</p>
+              </div>
+
+              <div *ngIf="plot.street_no || plot.block || plot.sector">
+                <p class="text-xs font-medium text-gray-500 uppercase mb-1">Location Details</p>
+                <p class="text-sm text-gray-900">
+                  <span *ngIf="plot.street_no">Street: {{ plot.street_no }}</span>
+                  <span *ngIf="plot.block"> | Block: {{ plot.block }}</span>
+                  <span *ngIf="plot.sector"> | Sector: {{ plot.sector }}</span>
+                </p>
+              </div>
+
+              <div *ngIf="plot.house_no || plot.plaza_no">
+                <p class="text-xs font-medium text-gray-500 uppercase mb-1">Property Details</p>
+                <p class="text-sm text-gray-900">
+                  <span *ngIf="plot.house_no">House: {{ plot.house_no }}</span>
+                  <span *ngIf="plot.plaza_no"> | Plaza: {{ plot.plaza_no }}</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Right Column - Membership Numbers -->
+            <div>
+              <p class="text-xs font-medium text-gray-500 uppercase mb-2">Membership Numbers</p>
+              <div class="space-y-2">
+                <div *ngFor="let member of plot.membership_numbers" 
+                     class="bg-white rounded-lg p-3 border border-gray-200">
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900">{{ member.name }}</p>
+                      <p class="text-xs text-gray-500">ECHS: {{ member.echs_no }}</p>
+                    </div>
+                    <span [class]="member.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                          class="px-2 py-1 text-xs font-semibold rounded-full">
+                      {{ member.is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                </div>
+                <div *ngIf="plot.membership_numbers.length === 0" class="text-sm text-gray-500 italic">
+                  No members assigned
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Created/Modified Info -->
+          <div class="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <div class="flex flex-col sm:flex-row gap-2 text-xs text-gray-500">
+              <span><i class="fas fa-calendar-plus mr-1"></i>Created: {{ plot.created | date: 'MMM d, y, h:mm a' }}</span>
+              <span><i class="fas fa-calendar-edit mr-1"></i>Modified: {{ plot.modified | date: 'MMM d, y, h:mm a' }}</span>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex gap-2">
+              <button
+                (click)="editPlot(plot); $event.stopPropagation()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2">
+                <i class="fas fa-edit"></i>
+                Edit
+              </button>
+              <button
+                (click)="deletePlot(plot); $event.stopPropagation()"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm flex items-center gap-2">
+                <i class="fas fa-trash"></i>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="plots.length === 0" class="text-center py-12 bg-white rounded-xl shadow-md">
+        <i class="fas fa-map-marked-alt text-gray-400 text-5xl mb-4"></i>
+        <p class="text-gray-500 text-lg">No plots found</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!isLoading && plots.length > 0" class="mt-6 bg-white rounded-xl shadow-md p-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-sm text-gray-700">
+          Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
+          <span class="font-medium">{{ Math.min(currentPage * pageSize, totalCount) }}</span> of 
+          <span class="font-medium">{{ totalCount }}</span> results
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            (click)="onPageChange(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            [class.opacity-50]="currentPage === 1"
+            [class.cursor-not-allowed]="currentPage === 1"
+            class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+            Previous
+          </button>
+          
+          <button
+            *ngFor="let page of getPageNumbers()"
+            (click)="onPageChange(page)"
+            [class.bg-blue-600]="page === currentPage"
+            [class.text-white]="page === currentPage"
+            [class.bg-white]="page !== currentPage"
+            [class.text-gray-700]="page !== currentPage"
+            class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
+            {{ page }}
+          </button>
+          
+          <button
+            (click)="onPageChange(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            [class.opacity-50]="currentPage === totalPages"
+            [class.cursor-not-allowed]="currentPage === totalPages"
+            class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Plot Dialog -->
+  <div *ngIf="showAddDialog" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <!-- Background overlay -->
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeAddDialog()"></div>
+
+      <!-- Center modal -->
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <!-- Modal panel -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[80vh] overflow-y-auto">
+          <div class="sm:flex sm:items-start">
+            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                {{ isEditMode ? 'Edit Plot' : 'Add New Plot' }}
+              </h3>
+
+              <!-- Error Alert -->
+              <div *ngIf="errorMessage" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                <div class="flex items-start">
+                  <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                  <span class="block sm:inline">{{ errorMessage }}</span>
+                </div>
+              </div>
+              
+              <form (ngSubmit)="submitAddPlot()" class="space-y-4">
+                <!-- Required Fields Section -->
+                <div class="border-b border-gray-200 pb-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Required Information</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Plot Number -->
+                    <div>
+                      <label for="plot_no" class="block text-sm font-medium text-gray-700 mb-1">
+                        Plot Number <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="plot_no"
+                        [(ngModel)]="newPlot.plot_no"
+                        name="plot_no"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., P-001"
+                      />
+                    </div>
+
+                    <!-- Plot Type -->
+                    <div>
+                      <label for="plot_type" class="block text-sm font-medium text-gray-700 mb-1">
+                        Plot Type <span class="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="plot_type"
+                        [(ngModel)]="newPlot.plot_type"
+                        name="plot_type"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option *ngFor="let type of plotTypeChoices" [value]="type.value">{{ type.label }}</option>
+                      </select>
+                    </div>
+
+                    <!-- Plot Status -->
+                    <div>
+                      <label for="plot_status" class="block text-sm font-medium text-gray-700 mb-1">
+                        Plot Status <span class="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="plot_status"
+                        [(ngModel)]="newPlot.plot_status"
+                        name="plot_status"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option *ngFor="let status of plotStatusChoices" [value]="status.value">{{ status.label }}</option>
+                      </select>
+                    </div>
+
+                    <!-- Possession Date -->
+                    <div>
+                      <label for="possession_date" class="block text-sm font-medium text-gray-700 mb-1">
+                        Possession Date
+                      </label>
+                      <input
+                        type="date"
+                        id="possession_date"
+                        [(ngModel)]="newPlot.possession_date"
+                        name="possession_date"
+                        [max]="getTodayDate()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">Only today or past dates are allowed</p>
+                    </div>
+                  </div>
+
+                  <!-- Add Members -->
+                  <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Add Members
+                    </label>
+                    
+                    <!-- Selected Members Display -->
+                    <div *ngIf="selectedMembers.length > 0" class="mb-2 flex flex-wrap gap-2">
+                      <span *ngFor="let member of selectedMembers" 
+                            class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        {{ member.echs_no }} - {{ member.name }}
+                        <button type="button" (click)="removeMember(member)" class="hover:text-blue-900">
+                          <i class="fas fa-times text-xs"></i>
+                        </button>
+                      </span>
+                    </div>
+
+                    <!-- Search Input with Dropdown -->
+                    <div class="relative membership-dropdown-container">
+                      <div class="relative">
+                        <input
+                          type="text"
+                          id="membershipSearchInput"
+                          [(ngModel)]="membershipSearchTerm"
+                          (input)="filterMembershipNumbers()"
+                          (focus)="onMembershipInputFocus()"
+                          (click)="$event.stopPropagation()"
+                          name="membershipSearch"
+                          placeholder="Search by name or ECHS number..."
+                          class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                      </div>
+
+                      <!-- Dropdown Menu -->
+                      <div *ngIf="showMembershipDropdown && filteredMembershipNumbers.length > 0" 
+                           class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                        <div *ngFor="let member of filteredMembershipNumbers"
+                             (click)="toggleMemberSelection(member); $event.stopPropagation()"
+                             class="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 transition-colors">
+                          <input
+                            type="checkbox"
+                            [checked]="isMemberSelected(member)"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            (click)="$event.stopPropagation()"
+                          />
+                          <span class="text-sm text-gray-900">{{ member.echs_no }} - {{ member.name }}</span>
+                        </div>
+                      </div>
+
+                      <!-- No Results Message -->
+                      <div *ngIf="showMembershipDropdown && filteredMembershipNumbers.length === 0 && membershipSearchTerm" 
+                           class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg px-3 py-4 text-center text-sm text-gray-500">
+                        No members found
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Type to search and select multiple members</p>
+                  </div>
+                </div>
+
+                <!-- Optional Fields Section -->
+                <div class="border-b border-gray-200 pb-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Additional Information (Optional)</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Covered Area -->
+                    <div>
+                      <label for="covered_area" class="block text-sm font-medium text-gray-700 mb-1">
+                        Covered Area (sq. ft.)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        id="covered_area"
+                        [(ngModel)]="newPlot.covered_area"
+                        name="covered_area"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., 250.50"
+                      />
+                    </div>
+
+                    <!-- Street Number -->
+                    <div>
+                      <label for="street_no" class="block text-sm font-medium text-gray-700 mb-1">
+                        Street Number
+                      </label>
+                      <input
+                        type="text"
+                        id="street_no"
+                        [(ngModel)]="newPlot.street_no"
+                        name="street_no"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Street 5"
+                      />
+                    </div>
+
+                    <!-- Block -->
+                    <div>
+                      <label for="block" class="block text-sm font-medium text-gray-700 mb-1">
+                        Block
+                      </label>
+                      <input
+                        type="text"
+                        id="block"
+                        [(ngModel)]="newPlot.block"
+                        name="block"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., A"
+                      />
+                    </div>
+
+                    <!-- Sector -->
+                    <div>
+                      <label for="sector" class="block text-sm font-medium text-gray-700 mb-1">
+                        Sector
+                      </label>
+                      <input
+                        type="text"
+                        id="sector"
+                        [(ngModel)]="newPlot.sector"
+                        name="sector"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., G-13"
+                      />
+                    </div>
+
+                    <!-- House Number (Residential only) -->
+                    <div *ngIf="newPlot.plot_type === 'Residential'">
+                      <label for="house_no" class="block text-sm font-medium text-gray-700 mb-1">
+                        House Number
+                      </label>
+                      <input
+                        type="text"
+                        id="house_no"
+                        [(ngModel)]="newPlot.house_no"
+                        name="house_no"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., 123"
+                      />
+                    </div>
+
+                    <!-- Plaza Number (Commercial only) -->
+                    <div *ngIf="newPlot.plot_type === 'Commercial'">
+                      <label for="plaza_no" class="block text-sm font-medium text-gray-700 mb-1">
+                        Plaza Number
+                      </label>
+                      <input
+                        type="text"
+                        id="plaza_no"
+                        [(ngModel)]="newPlot.plaza_no"
+                        name="plaza_no"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Plaza 1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    (click)="closeAddDialog()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    [disabled]="isSubmitting || !newPlot.plot_no || !newPlot.plot_type || !newPlot.plot_status"
+                    [class.opacity-50]="isSubmitting || !newPlot.plot_no || !newPlot.plot_type || !newPlot.plot_status"
+                    [class.cursor-not-allowed]="isSubmitting || !newPlot.plot_no || !newPlot.plot_type || !newPlot.plot_status"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
+                    <span>{{ isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : (isEditMode ? 'Update' : 'Submit') }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-sidebar>

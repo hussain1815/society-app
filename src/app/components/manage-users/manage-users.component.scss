@@ -1,1 +1,22 @@
 // Manage users styles
+
+// Accordion animation
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+// Rotate chevron
+.rotate-180 {
+  transform: rotate(180deg);
+}

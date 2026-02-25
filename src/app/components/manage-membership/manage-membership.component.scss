@@ -1,0 +1,8 @@
+.manage-membership-container {
+  padding: 20px;
+}
+
+// Expose Math to template
+:host {
+  --math: Math;
+}
