@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { SidebarComponent } from '../layout/sidebar/sidebar.component';
 import { UserService } from '../../services/user.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
@@ -37,7 +36,6 @@ interface UserResponse {
   imports: [
     CommonModule, 
     FormsModule, 
-    SidebarComponent,
     MatDialogModule
   ],
   templateUrl: './manage-users.component.html',

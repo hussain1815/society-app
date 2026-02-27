@@ -34,7 +34,8 @@ export class SidebarComponent implements OnInit {
     { label: 'Manage Pets', icon: 'fa-paw', route: '/admin/pets', roles: ['superadmin', 'accounts'] },
     { label: 'Manage SOs Alerts', icon: 'fa-bell', route: '/admin/sos-alerts', roles: ['superadmin', 'accounts'] },
     { label: 'Manage Compliments', icon: 'fa-thumbs-up', route: '/admin/compliments', roles: ['superadmin', 'accounts'] },
-    { label: 'Manage Department', icon: 'fa-sitemap', route: '/admin/department', roles: ['superadmin'] },
+    { label: 'Manage Department', icon: 'fa-sitemap', route: '/admin/departments', roles: ['superadmin'] },
+    { label: 'Manage Department Users', icon: 'fa-user-tie', route: '/admin/department-users', roles: ['superadmin'] },
     { label: 'Manage Billing', icon: 'fa-file-invoice-dollar', route: '/admin/billing', roles: ['superadmin', 'accounts'] },
     { label: 'Announcements', icon: 'fa-bullhorn', route: '/admin/announcements', roles: ['superadmin', 'accounts'] }
   ];

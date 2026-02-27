@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MembershipService } from '../../services/membership.service';
-import { SidebarComponent } from '../layout/sidebar/sidebar.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 interface MembershipNumber {
@@ -26,7 +25,7 @@ interface MembershipResponse {
 @Component({
   selector: 'app-manage-membership',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, FormsModule, MatDialogModule],
+  imports: [CommonModule, FormsModule, MatDialogModule],
   templateUrl: './manage-membership.component.html',
   styleUrls: ['./manage-membership.component.scss']
 })

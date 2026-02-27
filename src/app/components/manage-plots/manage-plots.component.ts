@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PlotService } from '../../services/plot.service';
-import { SidebarComponent } from '../layout/sidebar/sidebar.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 interface MembershipNumber {
@@ -41,7 +40,7 @@ interface PlotResponse {
 @Component({
   selector: 'app-manage-plots',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, FormsModule, MatDialogModule],
+  imports: [CommonModule, FormsModule, MatDialogModule],
   templateUrl: './manage-plots.component.html',
   styleUrls: ['./manage-plots.component.scss']
 })

@@ -1,0 +1,561 @@
+<div class="p-4 md:p-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Manage Department Users</h1>
+            <p class="text-gray-600 mt-2">View and manage department user information</p>
+          </div>
+          <button
+            (click)="openAddDialog()"
+            class="hidden md:flex px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors items-center gap-2">
+            <i class="fas fa-plus"></i>
+            Add Member
+          </button>
+        </div>
+        <button
+          (click)="openAddDialog()"
+          class="md:hidden w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+          <i class="fas fa-plus"></i>
+          Add Member
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Search Field -->
+        <div class="flex-1 md:max-w-2xl">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="relative flex-1">
+              <input
+                type="text"
+                [(ngModel)]="searchTerm"
+                (keyup.enter)="onSearch()"
+                placeholder="Search by name or email..."
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+            <div class="flex gap-2">
+              <button
+                (click)="onSearch()"
+                class="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 whitespace-nowrap">
+                Search
+              </button>
+              <button
+                *ngIf="searchTerm"
+                (click)="clearSearch()"
+                class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                title="Clear search">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gender Filter -->
+        <div class="flex items-center gap-2">
+          <label for="genderFilter" class="text-sm font-semibold text-gray-800 whitespace-nowrap">Gender:</label>
+          <div class="relative">
+            <select
+              id="genderFilter"
+              [(ngModel)]="selectedGender"
+              (change)="onGenderChange(selectedGender)"
+              class="w-full sm:w-auto appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors">
+              <option *ngFor="let option of genderOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+              <i class="fas fa-chevron-down text-sm"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Count -->
+    <div class="mb-6 flex justify-center md:justify-end">
+      <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg px-4 py-2 shadow-md w-full md:w-auto text-center">
+        <span class="text-sm text-white font-medium">Total Users: <span class="font-bold text-lg">{{ totalCount }}</span></span>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <!-- <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div> -->
+
+    <!-- Users Table -->
+    <div *ngIf="!isLoading" class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let user of users" class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                    {{ user.full_name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{ user.full_name }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">{{ user.email }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span *ngIf="user.department_name" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  {{ user.department_name }}
+                </span>
+                <span *ngIf="!user.department_name" class="text-sm text-gray-400 italic">Not assigned</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [ngClass]="getGenderColor(user.gender)" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize">
+                  {{ user.gender }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ user.age }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex items-center gap-3">
+                  <button
+                    (click)="editUser(user)"
+                    class="text-blue-600 hover:text-blue-900 transition-colors"
+                    title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    (click)="deleteUser(user)"
+                    class="text-red-600 hover:text-red-900 transition-colors"
+                    title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="users.length === 0" class="text-center py-12">
+        <i class="fas fa-user-tie text-gray-400 text-5xl mb-4"></i>
+        <p class="text-gray-500 text-lg">No department users found</p>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="users.length > 0" class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-sm text-gray-700">
+            Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
+            <span class="font-medium">{{ Math.min(currentPage * pageSize, totalCount) }}</span> of 
+            <span class="font-medium">{{ totalCount }}</span> results
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              (click)="onPageChange(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              [class.opacity-50]="currentPage === 1"
+              [class.cursor-not-allowed]="currentPage === 1"
+              class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+              Previous
+            </button>
+            
+            <button
+              *ngFor="let page of getPageNumbers()"
+              (click)="onPageChange(page)"
+              [class.bg-blue-600]="page === currentPage"
+              [class.text-white]="page === currentPage"
+              [class.bg-white]="page !== currentPage"
+              [class.text-gray-700]="page !== currentPage"
+              class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
+              {{ page }}
+            </button>
+            
+            <button
+              (click)="onPageChange(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              [class.opacity-50]="currentPage === totalPages"
+              [class.cursor-not-allowed]="currentPage === totalPages"
+              class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Member Dialog -->
+  <div *ngIf="showAddDialog" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <!-- Background overlay -->
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeAddDialog()"></div>
+
+      <!-- Center modal -->
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <!-- Modal panel -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[80vh] overflow-y-auto">
+          <div class="sm:flex sm:items-start">
+            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                Add New Member
+              </h3>
+
+              <!-- Error Alert -->
+              <div *ngIf="errorMessage" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                <div class="flex items-start">
+                  <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                  <span class="block sm:inline">{{ errorMessage }}</span>
+                </div>
+              </div>
+              
+              <form (ngSubmit)="submitAddUser()" class="space-y-4">
+                <!-- Required Fields Section -->
+                <div class="border-b border-gray-200 pb-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Required Information</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Email -->
+                    <div>
+                      <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        [(ngModel)]="newUser.email"
+                        name="email"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="user@example.com"
+                      />
+                    </div>
+
+                    <!-- First Name -->
+                    <div>
+                      <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        First Name <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="first_name"
+                        [(ngModel)]="newUser.first_name"
+                        name="first_name"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter first name"
+                      />
+                    </div>
+
+                    <!-- Last Name -->
+                    <div>
+                      <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        Last Name <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="last_name"
+                        [(ngModel)]="newUser.last_name"
+                        name="last_name"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter last name"
+                      />
+                    </div>
+
+                    <!-- Gender -->
+                    <div>
+                      <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">
+                        Gender <span class="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="gender"
+                        [(ngModel)]="newUser.gender"
+                        name="gender"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option *ngFor="let option of genderChoices" [value]="option.value">{{ option.label }}</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Optional Fields Section -->
+                <div class="border-b border-gray-200 pb-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Additional Information (Optional)</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Date of Birth -->
+                    <div>
+                      <label for="dob" class="block text-sm font-medium text-gray-700 mb-1">
+                        Date of Birth
+                      </label>
+                      <input
+                        type="date"
+                        id="dob"
+                        [(ngModel)]="newUser.dob"
+                        name="dob"
+                        [max]="getTodayDate()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div>
+                      <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number
+                      </label>
+                      <input
+                        type="text"
+                        id="phone_number"
+                        [(ngModel)]="newUser.phone_number"
+                        name="phone_number"
+                        pattern="[0-9+\-\s]*"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="+92-303-1234567"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">Numbers only</p>
+                    </div>
+
+                    <!-- CNIC -->
+                    <div>
+                      <label for="cnic" class="block text-sm font-medium text-gray-700 mb-1">
+                        CNIC
+                      </label>
+                      <input
+                        type="text"
+                        id="cnic"
+                        [(ngModel)]="newUser.cnic"
+                        name="cnic"
+                        pattern="[0-9\-]*"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="12345-1234567-1"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">Numbers only</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    (click)="closeAddDialog()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    [disabled]="isSubmitting || !newUser.email || !newUser.first_name || !newUser.last_name || !newUser.gender"
+                    [class.opacity-50]="isSubmitting || !newUser.email || !newUser.first_name || !newUser.last_name || !newUser.gender"
+                    [class.cursor-not-allowed]="isSubmitting || !newUser.email || !newUser.first_name || !newUser.last_name || !newUser.gender"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
+                    <span>{{ isSubmitting ? 'Submitting...' : 'Submit' }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Member Dialog -->
+  <div *ngIf="showEditDialog" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <!-- Background overlay -->
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeEditDialog()"></div>
+
+      <!-- Center modal -->
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <!-- Modal panel -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[80vh] overflow-y-auto">
+          <div class="sm:flex sm:items-start">
+            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                Edit Member
+              </h3>
+
+              <!-- Error Alert -->
+              <div *ngIf="errorMessage" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                <div class="flex items-start">
+                  <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                  <span class="block sm:inline">{{ errorMessage }}</span>
+                </div>
+              </div>
+
+              <!-- Loading State -->
+              <!-- <div *ngIf="isLoadingUserDetails && !errorMessage" class="flex justify-center items-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-3 text-gray-600">Loading user details...</span>
+              </div> -->
+              
+              <form (ngSubmit)="submitEditUser()" class="space-y-4">
+                <!-- Required Fields Section -->
+                <div class="border-b border-gray-200 pb-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Required Information</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Email -->
+                    <div>
+                      <label for="edit_email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="edit_email"
+                        [(ngModel)]="editUser_data.email"
+                        name="edit_email"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="user@example.com"
+                      />
+                    </div>
+
+                    <!-- First Name -->
+                    <div>
+                      <label for="edit_first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        First Name <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="edit_first_name"
+                        [(ngModel)]="editUser_data.first_name"
+                        name="edit_first_name"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter first name"
+                      />
+                    </div>
+
+                    <!-- Last Name -->
+                    <div>
+                      <label for="edit_last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        Last Name <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="edit_last_name"
+                        [(ngModel)]="editUser_data.last_name"
+                        name="edit_last_name"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter last name"
+                      />
+                    </div>
+
+                    <!-- Gender -->
+                    <div>
+                      <label for="edit_gender" class="block text-sm font-medium text-gray-700 mb-1">
+                        Gender <span class="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="edit_gender"
+                        [(ngModel)]="editUser_data.gender"
+                        name="edit_gender"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option *ngFor="let option of genderChoices" [value]="option.value">{{ option.label }}</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Optional Fields Section -->
+                <div class="border-b border-gray-200 pb-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Additional Information (Optional)</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Date of Birth -->
+                    <div>
+                      <label for="edit_dob" class="block text-sm font-medium text-gray-700 mb-1">
+                        Date of Birth
+                      </label>
+                      <input
+                        type="date"
+                        id="edit_dob"
+                        [(ngModel)]="editUser_data.dob"
+                        name="edit_dob"
+                        [max]="getTodayDate()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div>
+                      <label for="edit_phone_number" class="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number
+                      </label>
+                      <input
+                        type="text"
+                        id="edit_phone_number"
+                        [(ngModel)]="editUser_data.phone_number"
+                        name="edit_phone_number"
+                        pattern="[0-9+\-\s]*"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="+92-303-1234567"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">Numbers only</p>
+                    </div>
+
+                    <!-- CNIC -->
+                    <div>
+                      <label for="edit_cnic" class="block text-sm font-medium text-gray-700 mb-1">
+                        CNIC
+                      </label>
+                      <input
+                        type="text"
+                        id="edit_cnic"
+                        [(ngModel)]="editUser_data.cnic"
+                        name="edit_cnic"
+                        pattern="[0-9\-]*"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="12345-1234567-1"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">Numbers only</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    (click)="closeEditDialog()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    [disabled]="isSubmitting || !editUser_data.email || !editUser_data.first_name || !editUser_data.last_name || !editUser_data.gender"
+                    [class.opacity-50]="isSubmitting || !editUser_data.email || !editUser_data.first_name || !editUser_data.last_name || !editUser_data.gender"
+                    [class.cursor-not-allowed]="isSubmitting || !editUser_data.email || !editUser_data.first_name || !editUser_data.last_name || !editUser_data.gender"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
+                    <span>{{ isSubmitting ? 'Updating...' : 'Update' }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
