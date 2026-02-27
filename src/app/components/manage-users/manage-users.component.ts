@@ -48,7 +48,6 @@ export class ManageUsersComponent implements OnInit {
   pageSize: number = 10;
   selectedStatus: string = '';
   searchQuery: string = '';
-  loading: boolean = false;
   expandedIndex: number | null = null; // For accordion on mobile
   previousStatuses: Map<number, string> = new Map(); // Track previous status for each user
   Math = Math; // Make Math available in template
@@ -63,7 +62,6 @@ export class ManageUsersComponent implements OnInit {
   }
 
   loadUsers(): void {
-    this.loading = true;
     this.userService.getMemberUsers(this.selectedStatus, this.currentPage, this.pageSize, this.searchQuery).subscribe({
       next: (response: UserResponse) => {
         console.log('Member Users Response:', response);
@@ -74,12 +72,9 @@ export class ManageUsersComponent implements OnInit {
         this.users.forEach(user => {
           this.previousStatuses.set(user.id, user.status);
         });
-        
-        this.loading = false;
       },
       error: (error) => {
         console.error('Error loading users:', error);
-        this.loading = false;
       }
     });
   }

@@ -39,7 +39,6 @@ export class ManageMembershipComponent implements OnInit {
   pageSize: number = 10;
   totalPages: number = 0;
   searchTerm: string = '';
-  isLoading: boolean = false;
   Math = Math;
   
   showAddDialog: boolean = false;
@@ -63,18 +62,15 @@ export class ManageMembershipComponent implements OnInit {
   }
 
   loadMemberships(): void {
-    this.isLoading = true;
     this.membershipService.getMembershipNumbers(this.currentPage, this.pageSize, this.searchTerm).subscribe({
       next: (response: MembershipResponse) => {
         console.log('Membership Numbers Response:', response);
         this.memberships = response.results;
         this.totalCount = response.count;
         this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error fetching membership numbers:', error);
-        this.isLoading = false;
       }
     });
   }

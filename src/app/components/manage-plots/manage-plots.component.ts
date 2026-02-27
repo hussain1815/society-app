@@ -56,7 +56,6 @@ export class ManagePlotsComponent implements OnInit {
   selectedStatus: string = '';
   selectedType: string = '';
   searchTerm: string = '';
-  isLoading: boolean = false;
   expandedIndex: number | null = null;
   Math = Math;
 
@@ -124,18 +123,15 @@ export class ManagePlotsComponent implements OnInit {
   }
 
   loadPlots(): void {
-    this.isLoading = true;
     this.plotService.getPlots(this.currentPage, this.pageSize, this.selectedStatus, this.selectedType, this.searchTerm).subscribe({
       next: (response: PlotResponse) => {
         console.log('Plots Response:', response);
         this.plots = response.results;
         this.totalCount = response.count;
         this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error fetching plots:', error);
-        this.isLoading = false;
       }
     });
   }

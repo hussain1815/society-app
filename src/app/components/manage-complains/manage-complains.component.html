@@ -1,0 +1,296 @@
+<div class="p-4 md:p-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Manage Complains</h1>
+    <p class="text-gray-600 mt-2">View and manage complaint information</p>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+    <div class="flex flex-col gap-4">
+      <!-- Search -->
+      <div class="flex flex-col sm:flex-row gap-2">
+        <div class="relative flex-1">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="onSearch()"
+            placeholder="Search by subject, member email..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex gap-2">
+          <button
+            (click)="onSearch()"
+            class="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 whitespace-nowrap">
+            Search
+          </button>
+          <button
+            *ngIf="searchTerm"
+            (click)="clearSearch()"
+            class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+            title="Clear search">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <!-- Priority Filter -->
+        <div class="flex items-center gap-2 flex-1">
+          <label for="priorityFilter" class="text-sm font-semibold text-gray-800 whitespace-nowrap">Priority:</label>
+          <div class="relative flex-1">
+            <select
+              id="priorityFilter"
+              [(ngModel)]="selectedPriority"
+              (change)="onPriorityChange()"
+              class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors">
+              <option *ngFor="let option of priorityOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+              <i class="fas fa-chevron-down text-sm"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="flex items-center gap-2 flex-1">
+          <label for="statusFilter" class="text-sm font-semibold text-gray-800 whitespace-nowrap">Status:</label>
+          <div class="relative flex-1">
+            <select
+              id="statusFilter"
+              [(ngModel)]="selectedStatus"
+              (change)="onStatusChange()"
+              class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors">
+              <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+              <i class="fas fa-chevron-down text-sm"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Count -->
+  <div class="mb-6 flex justify-center md:justify-end">
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg px-4 py-2 shadow-md w-full md:w-auto text-center">
+      <span class="text-sm text-white font-medium">Total Complaints: <span class="font-bold text-lg">{{ totalCount }}</span></span>
+    </div>
+  </div>
+
+  <!-- Complaints Accordion -->
+  <div class="space-y-4">
+    <div *ngFor="let complaint of complaints" class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300">
+      <!-- Accordion Header -->
+      <div 
+        class="flex items-center justify-between p-4 md:p-6 hover:bg-gray-50 transition-colors">
+        <div 
+          (click)="toggleAccordion(complaint.id)"
+          class="flex items-center gap-4 flex-1 min-w-0 cursor-pointer">
+          <!-- Icon -->
+          <div class="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0">
+            <i class="fas fa-comment-alt text-white text-xl"></i>
+          </div>
+
+          <!-- Complaint Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+              <h3 class="text-lg font-semibold text-gray-900">{{ complaint.subject }}</h3>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap text-sm">
+              <span [ngClass]="getPriorityColor(complaint.priority)" class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap">
+                {{ complaint.priority_display }}
+              </span>
+              <span [ngClass]="getStatusColor(complaint.status)" class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap">
+                {{ complaint.status_display }}
+              </span>
+              <span class="text-gray-600 whitespace-nowrap"><i class="fas fa-id-card mr-1"></i>{{ complaint.membership_number }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Icons -->
+        <div class="ml-4 flex items-center gap-2">
+          <button
+            *ngIf="complaint.status !== 'closed'"
+            (click)="editComplaint(complaint); $event.stopPropagation()"
+            class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            title="Update Status">
+            <i class="fas fa-pencil-alt"></i>
+          </button>
+          <button
+            (click)="toggleAccordion(complaint.id)"
+            class="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none">
+            <i [class]="isExpanded(complaint.id) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Accordion Content -->
+      <div *ngIf="isExpanded(complaint.id)" class="border-t border-gray-200 p-4 md:p-6 bg-gray-50">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="text-sm font-medium text-gray-500">Subject</label>
+            <p class="text-gray-900">{{ complaint.subject }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Department</label>
+            <p class="text-gray-900">{{ complaint.department_name }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Priority</label>
+            <p class="text-gray-900">{{ complaint.priority_display }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Status</label>
+            <p class="text-gray-900">{{ complaint.status_display }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Member Email</label>
+            <p class="text-gray-900 break-words">{{ complaint.member_email }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Membership Number</label>
+            <p class="text-gray-900">{{ complaint.membership_number }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Created Date</label>
+            <p class="text-gray-900">{{ complaint.created | date:'medium' }}</p>
+          </div>
+        </div>
+        
+        <!-- Action Button -->
+        <div *ngIf="complaint.status !== 'closed'" class="flex justify-end pt-4 border-t border-gray-200">
+          <button
+            (click)="editComplaint(complaint)"
+            class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <i class="fas fa-edit mr-2"></i>Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="complaints.length === 0" class="bg-white rounded-xl shadow-md p-12 text-center">
+      <i class="fas fa-comment-slash text-gray-400 text-5xl mb-4"></i>
+      <p class="text-gray-500 text-lg">No complaints found</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="complaints.length > 0" class="mt-6 bg-white rounded-xl shadow-md p-4">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="text-sm text-gray-700">
+        Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
+        <span class="font-medium">{{ Math.min(currentPage * pageSize, totalCount) }}</span> of 
+        <span class="font-medium">{{ totalCount }}</span> results
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          (click)="onPageChange(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          [class.opacity-50]="currentPage === 1"
+          [class.cursor-not-allowed]="currentPage === 1"
+          class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+          Previous
+        </button>
+        
+        <button
+          *ngFor="let page of getPageNumbers()"
+          (click)="onPageChange(page)"
+          [class.bg-blue-600]="page === currentPage"
+          [class.text-white]="page === currentPage"
+          [class.bg-white]="page !== currentPage"
+          [class.text-gray-700]="page !== currentPage"
+          class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
+          {{ page }}
+        </button>
+        
+        <button
+          (click)="onPageChange(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          [class.opacity-50]="currentPage === totalPages"
+          [class.cursor-not-allowed]="currentPage === totalPages"
+          class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Status Dialog -->
+<div *ngIf="showEditDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <!-- Dialog Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-t-xl">
+      <h2 class="text-2xl font-bold text-white">Update Complaint Status</h2>
+    </div>
+
+    <!-- Dialog Content -->
+    <div class="p-6">
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Status Field -->
+      <div class="mb-4">
+        <label for="editStatus" class="block text-sm font-semibold text-gray-700 mb-2">
+          Status <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <select
+            id="editStatus"
+            [(ngModel)]="editComplaint_data.status"
+            class="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
+            required>
+            <option value="" disabled>Select Status</option>
+            <option *ngFor="let status of getAvailableStatuses()" [value]="status.value">{{ status.label }}</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+            <i class="fas fa-chevron-down text-sm"></i>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Note: Status can only progress forward (pending → in progress → resolved → closed)</p>
+      </div>
+
+      <!-- Reason Field (Conditional) -->
+      <div *ngIf="isClosedStatus()" class="mb-4">
+        <label for="editReason" class="block text-sm font-semibold text-gray-700 mb-2">
+          Reason <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          id="editReason"
+          [(ngModel)]="editComplaint_data.closed_reason"
+          rows="4"
+          placeholder="Enter reason for closing the complaint"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          required></textarea>
+      </div>
+    </div>
+
+    <!-- Dialog Footer -->
+    <div class="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-end gap-3">
+      <button
+        (click)="closeEditDialog()"
+        [disabled]="isSubmitting"
+        class="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+        Cancel
+      </button>
+      <button
+        (click)="submitEditComplaint()"
+        [disabled]="isSubmitting"
+        class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="!isSubmitting">Update</span>
+        <span *ngIf="isSubmitting" class="flex items-center">
+          <i class="fas fa-spinner fa-spin mr-2"></i>Updating...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

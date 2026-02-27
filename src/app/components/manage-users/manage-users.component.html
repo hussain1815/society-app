@@ -102,14 +102,8 @@
 
     <!-- Users Table -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
-      <!-- Loading State -->
-      <div *ngIf="loading" class="p-8 text-center">
-        <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
-        <p class="text-gray-600">Loading users...</p>
-      </div>
-
       <!-- Users List - Desktop Table View -->
-      <div *ngIf="!loading && users.length > 0" class="hidden md:block overflow-x-auto">
+      <div *ngIf="users.length > 0" class="hidden md:block overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -210,7 +204,7 @@
       </div>
 
       <!-- Users List - Mobile Accordion View -->
-      <div *ngIf="!loading && users.length > 0" class="md:hidden divide-y divide-gray-200">
+      <div *ngIf="users.length > 0" class="md:hidden divide-y divide-gray-200">
         <div *ngFor="let user of users; let i = index" class="transition-colors">
           <!-- Accordion Header - Always Visible -->
           <div 
@@ -330,14 +324,14 @@
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="!loading && users.length === 0" class="p-8 text-center">
+      <div *ngIf="users.length === 0" class="p-8 text-center">
         <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
         <p class="text-gray-600 text-lg">No users found</p>
         <p class="text-gray-500 text-sm">Try changing the filter status</p>
       </div>
 
       <!-- Pagination -->
-      <div *ngIf="!loading && users.length > 0" class="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-200">
+      <div *ngIf="users.length > 0" class="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-200">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="text-sm text-gray-700 text-center sm:text-left">
             Showing page <span class="font-medium">{{ currentPage }}</span> of 

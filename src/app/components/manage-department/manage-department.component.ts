@@ -37,7 +37,6 @@ export class ManageDepartmentComponent implements OnInit {
   totalPages: number = 0;
   searchTerm: string = '';
   isActiveFilter?: boolean;
-  isLoading: boolean = false;
   Math = Math;
 
   showAddDialog: boolean = false;
@@ -68,18 +67,15 @@ export class ManageDepartmentComponent implements OnInit {
   }
 
   loadDepartments(): void {
-    this.isLoading = true;
     this.departmentService.getDepartments(this.currentPage, this.pageSize, this.searchTerm, this.isActiveFilter).subscribe({
       next: (response: DepartmentResponse) => {
         console.log('Departments Response:', response);
         this.departments = response.results;
         this.totalCount = response.count;
         this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error fetching departments:', error);
-        this.isLoading = false;
       }
     });
   }

@@ -6,6 +6,8 @@ import { ManageMembershipComponent } from './components/manage-membership/manage
 import { ManagePlotsComponent } from './components/manage-plots/manage-plots.component';
 import { ManageDepartmentUsersComponent } from './components/manage-department-users/manage-department-users.component';
 import { ManageDepartmentComponent } from './components/manage-department/manage-department.component';
+import { ManagePetsComponent } from './components/manage-pets/manage-pets.component';
+import { ManageComplainsComponent } from './components/manage-complains/manage-complains.component';
 import { AdminLayoutComponent } from './components/layout/admin-layout/admin-layout.component';
 import { authGuard } from './guards/auth.guard';
 
@@ -21,7 +23,9 @@ export const routes: Routes = [
       { path: 'membership', component: ManageMembershipComponent },
       { path: 'plots', component: ManagePlotsComponent },
       { path: 'department-users', component: ManageDepartmentUsersComponent },
-      { path: 'departments', component: ManageDepartmentComponent }
+      { path: 'departments', component: ManageDepartmentComponent },
+      { path: 'pets', component: ManagePetsComponent },
+      { path: 'complains', component: ManageComplainsComponent }
     ]
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
